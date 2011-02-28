@@ -1,0 +1,13 @@
+Forked (Hacked?) from python-excel(xlrd+xlwt+xlutils).
+
+Feature:
+
+Image support
+copy sheets
+copy cells
+
+etc.
+    
+Basically this is a dirty hack, since the excel format is complicated,
+I'm sure I'll never get it done in the *right* way :)
+
