@@ -84,6 +84,8 @@ class PictureSection:
             x.finish()
 
     def get(self):
+        if self.is_empty:
+            return ''
         self.finish()
         rslt = ''
         rslt += ''.join([x.get() + o.get() for (x, o) in self.objs])
@@ -1102,6 +1104,10 @@ class OfficeArtSpContainer(OfficeArtSpgrContainerFileBlock):
         self.pri_opt.insert(0x01D6, 0x00000002, 0, 0)
         self.pri_opt.insert(0x01FF, 0x00090000, 0, 0)
         self.pri_opt.insert(0x023F, 0x00020000, 0, 0)
+        # test zoom 50%
+        #self.pri_opt.insert(0x07C0, 0x000001f4, 0, 0)
+        #self.pri_opt.insert(0x07C4, 0x00000001, 0, 0)
+
         # FIXME: if the image name is not 16bits long, excel will complain when opening the book.
         #        this is weird but before it's fixed we just ensure the image name to 16bits.
         prefix = 'Graphics'
