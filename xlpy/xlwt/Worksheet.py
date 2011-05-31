@@ -1099,6 +1099,14 @@ class Worksheet(object):
                 self.first_used_row = indx
         return self.__rows[indx]
 
+    def set_row_height(self, rowno, height): # in pixels
+        row = self.__rows.get(rowno)
+        if row:
+            row.set_height_in_pixels(height)
+            twips = int((float(height) - 2/5) * 50/83 * 20.0)
+            row.height = twips
+            row.height_mismatch = 1
+
     def row_height(self, row): # in pixels
         if row in self.__rows:
             return self.__rows[row].get_height_in_pixels()
