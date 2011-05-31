@@ -49,8 +49,7 @@ class CneSheet:
     def write_row(self, r, ref, *cols):
         #print cols
         cols_dict = dict(cols)
-        for c in range(255):
-            value = c in cols_dict and cols_dict[c] or ''
+        for c, value in sorted(cols_dict.items()):
             self.write_value(r, c, value, ref)
 
     def insert_row(self, r, ref, *cols):
