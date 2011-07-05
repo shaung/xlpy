@@ -1077,11 +1077,11 @@ class Worksheet(object):
 
         self.__bmp_rec += obj.get() + bmp.get()
 
-    def insert_picture(self, pic_type, img_data, w, h, row=0, col=0, x = 0, y = 0, scale_x = 1, scale_y = 1):
-        self.__parent.drawing_group.insert(self.__idx, pic_type, img_data)
+    def insert_picture(self, img_path, img_type, img_data, w, h, row=0, col=0, x = 0, y = 0, scale_x = 1, scale_y = 1):
+        self.__parent.drawing_group.insert(self.__idx, img_type, img_data)
         cnt = self.__parent.drawing_group.get_count()
         #pic_cnt = self.__parent.drawing_group.get_pic_count_in_sheet(self.__idx)
-        self.__pic_rec.insert(cnt, pic_type, w, h, row, col, x, y, scale_x, scale_y)
+        self.__pic_rec.insert(cnt, img_type, w, h, row, col, x, y, scale_x, scale_y)
 
     def col(self, indx):
         if indx not in self.__cols:
