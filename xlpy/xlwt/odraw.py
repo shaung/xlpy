@@ -47,7 +47,6 @@ class MSODrawingGroupRecord(BiffRecord):
         """Copy the images in the old_sheet from another workbook to the new_sheet in current book."""
         old_pic_rec = old_sheet.pic_rec
         for pic_id, pic_type, width, height, row, col, x, y, scale_x, scale_y in old_pic_rec.pics:
-            print pic_id, pic_type
             img_data = other.dgct.get_image_data(pic_id)
             if img_data:
                 self.insert(new_sheet.index, pic_type, img_data)
