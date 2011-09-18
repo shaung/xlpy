@@ -1,4 +1,5 @@
-# -*- coding: windows-1252 -*-
+# -*- coding: utf-8 -*-
+
 '''
             BOF
             UNCALCED
@@ -362,6 +363,10 @@ class Worksheet(object):
 
     def set_sheet_visible(self, value):
         self.__sheet_visible = int(value)
+        if value:
+            self.visibility = 0
+        else:
+            self.visibility = 1
 
     def get_sheet_visible(self):
         return bool(self.__sheet_visible)
