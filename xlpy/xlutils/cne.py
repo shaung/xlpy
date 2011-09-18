@@ -17,7 +17,7 @@ def create_copy(fpath):
     Not a very good name but the best I can think out for now
 """
 
-class CneSheet:
+class CneSheet(object):
     def __init__(self, w, sheet, oldsheet):
         self.book = weakref.proxy(w)
         self.worksheet = weakref.proxy(sheet)
@@ -108,15 +108,13 @@ class CneSheet:
         self.worksheet.write(r, c, Formula(formula), self.book.style_list[cell.xf_index])
 
     def __getattr__(self, name):
-        if name == 'set_value':
-            return self.set_value
-        else:
-            return getattr(self.worksheet, name)
+        return getattr(self.worksheet, name)
 
     def append_horz_page_break(self, value):
         self.worksheet.horz_page_breaks.append(value)
 
-class CneBook:
+
+class CneBook(object):
     def __init__(self, book, old_path):
         self.oldbook = open_workbook(old_path, formatting_info=True)
         self.workbook = book
@@ -126,11 +124,17 @@ class CneBook:
         #return self.oldbook.nsheets
         return self.workbook.get_sheet_count()
 
-    def get_sheet(self, n):
+    def get_combined_sheet(self, n):
         sheet = self.workbook.get_sheet(n)
         oldsheet = self.oldbook.sheet_by_index(n)
         return CneSheet(self, sheet, oldsheet)
 
+    def get_sheet(self, n):
+        return self.workbook.get_sheet(n)
+
+    def get_old_sheet(self, n):
+        return self.oldbook.sheet_by_index(n)
+ 
     def get_original_sheets(self):
         for i in range(self.get_sheet_count()):
             yield self.workbook.get_sheet(i)
@@ -149,9 +153,5 @@ class CneBook:
         self.style_list = None
 
     def __getattr__(self, name):
-        if name == 'get_sheet':
-            return self.set_value
-        else:
-            return getattr(self.workbook, name)
-
+        return getattr(self.workbook, name)
 

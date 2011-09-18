@@ -49,9 +49,10 @@ class MSODrawingGroupRecord(BiffRecord):
         for pic_id, pic_type, width, height, row, col, x, y, scale_x, scale_y in old_pic_rec.pics:
             print pic_id, pic_type
             img_data = other.dgct.get_image_data(pic_id)
-            self.insert(new_sheet.index, pic_type, img_data)
-            cnt = self.get_count()
-            new_sheet.pic_rec.insert(cnt, pic_type, width, height, row, col, x, y, scale_x, scale_y)
+            if img_data:
+                self.insert(new_sheet.index, pic_type, img_data)
+                cnt = self.get_count()
+                new_sheet.pic_rec.insert(cnt, pic_type, width, height, row, col, x, y, scale_x, scale_y)
 
 
 class PictureSection(object):
@@ -346,7 +347,9 @@ class OfficeArtBStoreContainer(ODrawRecordBase):
         self.rgfbs.append(fbse)
 
     def get_image_data(self, pic_id):
-        fbase = self.rgfbs[pic_id]
+        if pic_id > len(self.rgfbs):
+            return None
+        fbase = self.rgfbs[pic_id - 1]
         return fbase.get_image_data()
 
 class OfficeArtBStoreContainerFileBlock(ODrawRecordBase):

@@ -363,10 +363,6 @@ class Worksheet(object):
 
     def set_sheet_visible(self, value):
         self.__sheet_visible = int(value)
-        if value:
-            self.visibility = 0
-        else:
-            self.visibility = 1
 
     def get_sheet_visible(self):
         return bool(self.__sheet_visible)
@@ -1043,6 +1039,24 @@ class Worksheet(object):
 
     index = property(get_index)
 
+    def is_visible(self):
+        return self.visibility == 0
+
+    def is_hidden(self):
+        return self.visibility == -1
+    
+    def is_very_hidden(self):
+        return self.visibility == -2
+
+    def set_visible(self):
+        self.visibility = 0
+ 
+    def set_hidden(self):
+        self.visibility = -1
+ 
+    def set_very_hidden(self):
+        self.visibility = -2
+ 
     ##################################################################
     ## Methods
     ##################################################################
@@ -1403,8 +1417,8 @@ class Worksheet(object):
 
         sht.__merged_ranges = self.__merged_ranges[:]
         sht.__bmp_rec = self.__bmp_rec
-        for pic in self.__pic_rec.pics:
-            sht.__pic_rec.insert_pic(*pic)
+        #for pic in self.__pic_rec.pics:
+        #    sht.__pic_rec.insert_pic(*pic)
 
         #print '??'
         sht.__show_formulas = self.__show_formulas

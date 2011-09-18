@@ -16,6 +16,9 @@ class Column(object):
         self.level = 0
         self.collapse = 0
 
+    def set_xf_index(self, idx):
+        self._xf_index = idx
+
     def get_book(self):
         return self._parent_wb
 
@@ -39,8 +42,10 @@ class Column(object):
         style = self._parent_wb.get_style(self._xf_index)
         if style:
             xf_idx = col.get_book().add_style(style)
+            col.set_xf_index(xf_idx)
         else:
-            col.set_xf_index(0x0F)
+            xf_idx = 0x0F
+        col.set_xf_index(xf_idx)
         col.width = self.width
         col.hidden = self.hidden
         col.level = self.level
