@@ -5,6 +5,8 @@ from xlpy.xlwt import *
 from copy import copy as copy_book
 from utils import get_xlwt_style_list
 
+import weakref
+
 def create_copy(fpath):
     wt = open_workbook(fpath, formatting_info=True)
     w = copy_book(wt)
@@ -17,9 +19,9 @@ def create_copy(fpath):
 
 class CneSheet:
     def __init__(self, w, sheet, oldsheet):
-        self.book = w
-        self.worksheet = sheet
-        self.oldsheet = oldsheet
+        self.book = weakref.proxy(w)
+        self.worksheet = weakref.proxy(sheet)
+        self.oldsheet = weakref.proxy(oldsheet)
 
     def get_merge_range(self, r, c, ref):
         for mrange in self.oldsheet.merged_cells:
@@ -140,6 +142,11 @@ class CneBook:
 
     def save(self, fpath):
         self.workbook.save(fpath)
+
+    def close(self):
+        self.oldbook = None
+        self.workbook = None
+        self.style_list = None
 
     def __getattr__(self, name):
         if name == 'get_sheet':

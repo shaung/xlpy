@@ -4,7 +4,8 @@ from BIFFRecords import BiffRecord
 from struct import *
 import Bitmap
 
-class ODrawRecordBase:
+
+class ODrawRecordBase(object):
     def get_full_len(self):
         len = self.get_len()
         return len > 0 and (len + 8) or 0
@@ -42,7 +43,20 @@ class MSODrawingGroupRecord(BiffRecord):
     def finish(self):
         self._rec_data = self.dgct.get()
 
-class PictureSection:
+    def copy_from_other_group(self, other, old_sheet, new_sheet):
+        """Copy the images in the old_sheet from another workbook to the new_sheet in current book."""
+        old_pic_rec = old_sheet.pic_rec
+        for pic_id, pic_type, width, height, row, col, x, y, scale_x, scale_y in old_pic_rec.pics:
+            print pic_id, pic_type
+            img_data = other.dgct.get_image_data(pic_id)
+            self.insert(new_sheet.index, pic_type, img_data)
+            cnt = self.get_count()
+            new_sheet.pic_rec.insert(cnt, pic_type, width, height, row, col, x, y, scale_x, scale_y)
+
+
+class PictureSection(object):
+    """The meta information of the images. This section is hold by the worksheet."""
+
     def __init__(self, sheet_id, sheet):
         self.sheet_id = sheet_id
         self.sheet = sheet
@@ -135,9 +149,7 @@ class ObjGraphicRecord(BiffRecord):
         data += pack('<L', 0)
         self._rec_data = data
 
-"""
-    The entrance
-"""
+
 class OfficeArtDggContainer(ODrawRecordBase):
     _ver = 0xF
     _ins = 0x0
@@ -204,6 +216,11 @@ class OfficeArtDggContainer(ODrawRecordBase):
         self.drawing_group.insert(sheet_id)
         self.blip_store.insert(pic_type, img_data)
 
+    def get_image_data(self, pic_id):
+        """get all the image data associated with the worksheet."""
+        return self.blip_store.get_image_data(pic_id)
+
+
 class OfficeArtFDGGBlock(ODrawRecordBase):
     _ver = 0x0
     _ins = 0x0
@@ -261,7 +278,8 @@ class OfficeArtFDGGBlock(ODrawRecordBase):
         rslt += ''.join([self.idcl_map[x].get() for x in sheets])
         return rslt
 
-class OfficeArtFDGG:
+
+class OfficeArtFDGG(object):
     def __init__(self, count=0):
         # spidMax (4 bytes): An MSOSPID structure, as defined in section 2.1.2, specifying the current
         # maximum shape identifier that is used in any drawing. This value MUST be less than
@@ -287,7 +305,7 @@ class OfficeArtFDGG:
         rslt += pack('<L', self.cdgsaved)
         return rslt
 
-class OfficeArtIDCL:
+class OfficeArtIDCL(object):
     def __init__(self, dgid=0x00, cspid_cur=0x00):
         # dgid (4 bytes): An MSODGID structure, as defined in section 2.1.1, specifying the drawing
         # identifier that owns this identifier cluster.
@@ -327,10 +345,14 @@ class OfficeArtBStoreContainer(ODrawRecordBase):
         fbse.insert(pic_type, img_data)
         self.rgfbs.append(fbse)
 
+    def get_image_data(self, pic_id):
+        fbase = self.rgfbs[pic_id]
+        return fbase.get_image_data()
+
 class OfficeArtBStoreContainerFileBlock(ODrawRecordBase):
     pass
 
-class MSOBLIPTYPE:
+class MSOBLIPTYPE(object):
     """
     MSOBLIPTYPE enumeration, as shown in the following table, specifies the persistence format
     of bitmap data.
@@ -411,6 +433,9 @@ class OfficeArtFBSE(ODrawRecordBase):
         }
         func = mapper[pic_type]
         func(*args)
+
+    def get_image_data(self):
+        return self.embedded_blip.data
 
     def get_size(self):
         return self.embedded_blip.get_full_len()
@@ -547,7 +572,7 @@ class OfficeArtTertiaryFOPT(OfficeArtOPTBase):
     _type = 0xF122
     _len = -1
 
-class OfficeArtRGFOPTE:
+class OfficeArtRGFOPTE(object):
     def __init__(self):
         self.props = []
         self.datas = []
@@ -571,7 +596,7 @@ class OfficeArtRGFOPTE:
         rslt += ''.join(self.datas)
         return rslt
 
-class OfficeArtFOPTE:
+class OfficeArtFOPTE(object):
     def __init__(self, k, op, fbid, fcomplex):
         # opid (2 bytes): An OfficeArtFOPTEOPID record, as defined in section 2.2.8, that specifies the
         # header information for this property.
@@ -591,7 +616,7 @@ class OfficeArtFOPTE:
         rslt += pack('<L', self.op)
         return rslt
 
-class OfficeArtFOPTEOPID:
+class OfficeArtFOPTEOPID(object):
     opid = 0x0
     fbid = 0x0
     fcomplex = 0x0
@@ -633,15 +658,14 @@ class OfficeArtSplitMenuColorContainer(ODrawRecordBase):
         return rslt
 
 
+class MSOSPT(object):
+    """
+    The MSOSPT enumeration, as shown in the following table, specifies the preset shapes and preset
+    text shape geometries that will be used for a shape. An enumeration of this type is used so that a
+    custom geometry does not need to be specified but can instead be automatically constructed by the
+    generating application.
+    """
 
-
-"""
-The MSOSPT enumeration, as shown in the following table, specifies the preset shapes and preset
-text shape geometries that will be used for a shape. An enumeration of this type is used so that a
-custom geometry does not need to be specified but can instead be automatically constructed by the
-generating application.
-"""
-class MSOSPT:
     msosptNotPrimitive = 0x00000000 # A shape that has no preset geometry And is
                                 # instead drawn with custom geometry. For
                                 # example, freeform shapes that Are drawn by
@@ -888,12 +912,6 @@ class MSOSPT:
     msosptActionButtonMovie = 0x000000C8 # A movie button shape:
     msosptHostControl = 0x000000C9 # A value that SHOULD NOT be used.
     msosptTextBox = 0x000000CA # A text box shape:
-
-
-
-
-
-
 
 
 class OfficeArtDgContainer(ODrawRecordBase):
@@ -1289,7 +1307,7 @@ class OfficeArtFRITContainer(ODrawRecordBase):
         rslt += ''.join([x.get() for x in self.rgfrits])
         return rslt
 
-class OfficeArtFRIT:
+class OfficeArtFRIT(object):
     def __init__(self, new, old):
         # fridNew (2 bytes): A FRID structure, as defined in section 2.1.3, specifying the last group (4)
         # identifier of the shape before ungrouping. The value of fridNew MUST be greater than the
@@ -1502,3 +1520,4 @@ class OfficeArtFPSPL(ODrawRecordBase):
         rslt = self.get_header()
         rslt += pack('<L', self.spid | self.reserved << 30 | self.flast << 31)
         return rslt
+

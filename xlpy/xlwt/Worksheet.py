@@ -1038,12 +1038,14 @@ class Worksheet(object):
 
     password = property(get_password, set_password)
 
+    def get_index(self):
+        return self.__idx
+
+    index = property(get_index)
+
     ##################################################################
     ## Methods
     ##################################################################
-
-    def get_parent(self):
-        return self.__parent
 
     def write(self, r, c, label="", style=Style.default_style):
         self.row(r).write(c, label, style)
@@ -1389,8 +1391,10 @@ class Worksheet(object):
     def set_print_title(self, r1, r2):
         self.__parent.add_print_title(self.__idx, r1, r2)
 
-    def get_copy(self, name):
-        sht = Worksheet(name, self.__parent, cell_overwrite_ok=True)
+    def get_copy(self, name, parent=None):
+        if parent is None:
+            parent = self.__parent
+        sht = Worksheet(name, parent, cell_overwrite_ok=True)
         for indx, row in self.__rows.items():
             sht.__rows[indx] = row.get_copy(indx, sht)
 

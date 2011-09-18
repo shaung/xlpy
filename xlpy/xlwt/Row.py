@@ -57,6 +57,8 @@ class Row(object):
         self.space_above = 0
         self.space_below = 0
 
+    def get_book(self):
+        return self.__parent_wb
 
     def __adjust_height(self, style):
         twips = style.font.height
@@ -167,11 +169,24 @@ class Row(object):
                 self.__parent_wb.del_str(sst_idx)
         self.__cells[col_index] = cell_obj
 
-    def copy_cell(self, cell_obj):
+    def copy_cell(self, cell_obj, other_row):
         sst_idx = getattr(cell_obj, 'sst_idx', None)
         if sst_idx is not None:
-            self.__parent_wb.add_ref(sst_idx)
-        return cell_obj.get_copy()
+            if other_row == self.__parent:
+                self.__parent_wb.add_ref(sst_idx)
+            else:
+                s = self.__parent_wb.get_str(sst_idx)
+                sst_idx = other_row.get_book().add_str(s)
+
+        rslt = cell_obj.get_copy()
+        style = self.__parent_wb.get_style(cell_obj.xf_idx)
+        if style:
+            rslt.xf_idx = other_row.get_book().add_style(style)
+        else:
+            rslt.xf_idx = 0x0F
+        if hasattr(rslt, 'sst_idx'):
+            rslt.sst_idx = sst_idx
+        return rslt
 
     def insert_mulcells(self, colx1, colx2, cell_obj):
         self.insert_cell(colx1, cell_obj)
@@ -286,10 +301,15 @@ class Row(object):
 
         cells = row.get_cells()
         for indx, cell in self.__cells.items():
-            row._append_cell(indx, cell and self.copy_cell(cell) or cell)
+            row._append_cell(indx, cell and self.copy_cell(cell, row) or cell)
         row.set_min_col(self.__min_col_idx)
         row.set_max_col(self.__max_col_idx)
-        row.set_xf_index(self.__xf_index)
+        #row.set_xf_index(self.__xf_index)
+        style = self.__parent_wb.get_style(self.__xf_index)
+        if style:
+            xf_idx = row.get_book().add_style(style)
+        else:
+            row.set_xf_index(0x0F)
         row.set_has_default_xf_index(self.__has_default_xf_index)
         row.set_height_in_pixels(self.__height_in_pixels)
 

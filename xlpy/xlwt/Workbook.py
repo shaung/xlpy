@@ -345,8 +345,14 @@ class Workbook(object):
     def add_style(self, style):
         return self.__styles.add(style)
 
+    def get_style(self, idx):
+        return self.__styles.get_style(idx)
+
     def add_str(self, s):
         return self.__sst.add_str(s)
+
+    def get_str(self, sst_idx):
+        return self.__sst.get_str(sst_idx)
 
     def add_ref(self, sst_idx):
         self.__sst.add_ref(sst_idx)
@@ -384,6 +390,23 @@ class Workbook(object):
         sht = self.__worksheets[ref_index].get_copy(sheetname)
         self.__worksheets.append(sht)
         return sht
+
+    def copy_sheet_from_book(self, other_book, ref_index, sheetname, cell_overwrite_ok=True):
+        import Worksheet, Utils
+        if not isinstance(sheetname, unicode):
+            sheetname = sheetname.decode(self.encoding)
+        if not Utils.valid_sheet_name(sheetname):
+            raise Exception("invalid worksheet name %r" % sheetname)
+        lower_name = sheetname.lower()
+        if lower_name in self.__worksheet_idx_from_name:
+            raise Exception("duplicate worksheet name %r" % sheetname)
+        self.__worksheet_idx_from_name[lower_name] = len(self.__worksheets)
+
+        other_sheet = other_book.get_sheet(ref_index)
+        sheet = other_sheet.get_copy(sheetname, parent=self)
+        self.__worksheets.append(sheet)
+        self.__drawing_group.copy_from_other_group(other_book.drawing_group, other_sheet, sheet)
+        return sheet
 
     def get_sheet(self, sheetnum):
         return self.__worksheets[sheetnum]

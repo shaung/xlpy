@@ -32,6 +32,12 @@ class SharedStringTable(object):
             self._tally[idx] += 1
         return idx
 
+    def get_str(self, idx):
+        for s, sst_idx in self._str_indexes.items():
+            if sst_idx == idx:
+                return s
+        return ''
+
     def add_ref(self, idx):
         self._tally[idx] += 1
         self._add_calls += 1

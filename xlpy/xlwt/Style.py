@@ -63,6 +63,7 @@ class StyleCollection(object):
         self._font_id2x = {}
         self._font_x2id = {}
         self._font_val2x = {}
+        self._styles = {}
 
         for x in (0, 1, 2, 3, 5): # The font with index 4 is omitted in all BIFF versions
             font = Formatting.Font()
@@ -87,7 +88,12 @@ class StyleCollection(object):
     def add(self, style):
         if style == None:
             return 0x10
-        return self._add_style(style)[1]
+        idx = self._add_style(style)[1]
+        self._styles[idx] = style
+        return idx
+
+    def get_style(self, idx):
+        return self._styles.get(idx)
 
     def _add_style(self, style):
         num_format_str = style.num_format_str
