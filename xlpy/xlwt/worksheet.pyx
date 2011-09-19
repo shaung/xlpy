@@ -44,7 +44,6 @@ import odraw
 
 
 class Worksheet(object):
-    from Workbook import Workbook
 
     # a safe default value, 3 is always valid!
     active_pane = 3
@@ -60,7 +59,7 @@ class Worksheet(object):
         self.Column = Column.Column
 
         self.__name = sheetname
-        self.__parent = parent_book
+        self._parent = parent_book
         self._cell_overwrite_ok = cell_overwrite_ok
 
         self.__rows = {}
@@ -69,7 +68,7 @@ class Worksheet(object):
         self.__bmp_rec = ''
         self.__idx = parent_book.get_sheet_count()
         self.__pic_rec = odraw.PictureSection(parent_book.get_sheet_count(), self)
-        self.parent.drawing_group.add_sheet(self.__idx, len(self.__pic_rec.pics))
+        self._parent.drawing_group.add_sheet(self.__idx, len(self.__pic_rec.pics))
 
         self.__show_formulas = 0
         self.__show_grid = 1
@@ -220,7 +219,7 @@ class Worksheet(object):
     #################################################################
 
     def get_parent(self):
-        return self.__parent
+        return self._parent
 
     parent = property(get_parent)
 
@@ -734,7 +733,7 @@ class Worksheet(object):
 
     def set_header_str(self, value):
         if isinstance(value, str):
-            value = unicode(value, self.__parent.encoding)
+            value = unicode(value, self._parent.encoding)
         self.__header_str = value
 
     def get_header_str(self):
@@ -746,7 +745,7 @@ class Worksheet(object):
 
     def set_footer_str(self, value):
         if isinstance(value, str):
-            value = unicode(value, self.__parent.encoding)
+            value = unicode(value, self._parent.encoding)
         self.__footer_str = value
 
     def get_footer_str(self):
@@ -1099,9 +1098,9 @@ class Worksheet(object):
         self.__bmp_rec += obj.get() + bmp.get()
 
     def insert_picture(self, img_path, img_type, img_data, w, h, row=0, col=0, x = 0, y = 0, scale_x = 1, scale_y = 1):
-        self.__parent.drawing_group.insert(self.__idx, img_type, img_data)
-        cnt = self.__parent.drawing_group.get_count()
-        #pic_cnt = self.__parent.drawing_group.get_pic_count_in_sheet(self.__idx)
+        self._parent.drawing_group.insert(self.__idx, img_type, img_data)
+        cnt = self._parent.drawing_group.get_count()
+        #pic_cnt = self._parent.drawing_group.get_pic_count_in_sheet(self.__idx)
         self.__pic_rec.insert(cnt, img_type, w, h, row, col, x, y, scale_x, scale_y)
 
     def col(self, indx):
@@ -1388,7 +1387,15 @@ class Worksheet(object):
     def insert_row_before(self, idx):
         for x, row in self.__rows.copy().items():
             if x >= idx:
-                row.move_to(x+1)
+                #row.move_to(x+1)
+                new_idx = x + 1
+                row._idx = new_idx
+                for cell in row._cells.values():
+                    if cell is not None:
+                        try:
+                            cell.rowx = new_idx 
+                        except:
+                            pass
                 self.__rows[x+1] = row
         self.__rows[idx] = self.Row(idx, self)
         new_merged_ranges = []
@@ -1403,11 +1410,11 @@ class Worksheet(object):
         self.__merged_ranges = new_merged_ranges[:]
 
     def set_print_title(self, r1, r2):
-        self.__parent.add_print_title(self.__idx, r1, r2)
+        self._parent.add_print_title(self.__idx, r1, r2)
 
     def get_copy(self, name, parent=None):
         if parent is None:
-            parent = self.__parent
+            parent = self._parent
         sht = Worksheet(name, parent, cell_overwrite_ok=True)
         for indx, row in self.__rows.items():
             sht.__rows[indx] = row.get_copy(indx, sht)

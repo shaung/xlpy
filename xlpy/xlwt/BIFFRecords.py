@@ -10,6 +10,7 @@ class SharedStringTable(object):
     def __init__(self, encoding):
         self.encoding = encoding
         self._str_indexes = {}
+        self._str_indexes_reversed = {}
         self._tally = []
         self._add_calls = 0
         # Following 3 attrs are used for temporary storage in the
@@ -26,6 +27,7 @@ class SharedStringTable(object):
         if s not in self._str_indexes:
             idx = len(self._str_indexes)
             self._str_indexes[s] = idx
+            self._str_indexes_reversed[idx] = s
             self._tally.append(1)
         else:
             idx = self._str_indexes[s]
@@ -33,10 +35,11 @@ class SharedStringTable(object):
         return idx
 
     def get_str(self, idx):
-        for s, sst_idx in self._str_indexes.items():
-            if sst_idx == idx:
-                return s
-        return ''
+        return self._str_indexes_reversed.get(idx, '')
+        #for s, sst_idx in self._str_indexes.items():
+        #    if sst_idx == idx:
+        #        return s
+        #return ''
 
     def add_ref(self, idx):
         self._tally[idx] += 1

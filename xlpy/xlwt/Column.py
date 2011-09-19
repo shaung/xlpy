@@ -38,14 +38,15 @@ class Column(object):
 
     def get_copy(self, indx, parent_sheet):
         col = Column(indx, parent_sheet)
-        #col._xf_index = self._xf_index
-        style = self._parent_wb.get_style(self._xf_index)
-        if style:
-            xf_idx = col.get_book().add_style(style)
-            col.set_xf_index(xf_idx)
+        if parent_sheet.parent == self._parent_wb:
+            col._xf_index = self._xf_index
         else:
-            xf_idx = 0x0F
-        col.set_xf_index(xf_idx)
+            style = self._parent_wb.get_style(self._xf_index)
+            if style:
+                xf_idx = col.get_book().add_style(style)
+            else:
+                xf_idx = 0x0F
+            col._xf_index = xf_idx
         col.width = self.width
         col.hidden = self.hidden
         col.level = self.level

@@ -44,6 +44,8 @@ Record Order in BIFF8
 import BIFFRecords
 import Style
 import odraw
+from worksheet import Worksheet
+import Utils
 
 class Workbook(object):
 
@@ -364,7 +366,7 @@ class Workbook(object):
         return self.__sst.str_index(s)
 
     def add_sheet(self, sheetname, cell_overwrite_ok=True):
-        import Worksheet, Utils
+        print 'add sheet..%s' % (sheetname)
         if not isinstance(sheetname, unicode):
             sheetname = sheetname.decode(self.encoding)
         if not Utils.valid_sheet_name(sheetname):
@@ -373,12 +375,12 @@ class Workbook(object):
         if lower_name in self.__worksheet_idx_from_name:
             raise Exception("duplicate worksheet name %r" % sheetname)
         self.__worksheet_idx_from_name[lower_name] = len(self.__worksheets)
-        self.__worksheets.append(Worksheet.Worksheet(sheetname, self, cell_overwrite_ok))
+        self.__worksheets.append(Worksheet(sheetname, self, cell_overwrite_ok))
         #self.__drawing_group.add_sheet(self.get_sheet_count())
         return self.__worksheets[-1]
 
     def copy_sheet(self, ref_index, sheetname, cell_overwrite_ok=True):
-        import Worksheet, Utils
+        print 'copy sheet..%s..%s' % (ref_index, sheetname)
         if not isinstance(sheetname, unicode):
             sheetname = sheetname.decode(self.encoding)
         if not Utils.valid_sheet_name(sheetname):
@@ -392,7 +394,7 @@ class Workbook(object):
         return sht
 
     def copy_sheet_from_book(self, other_book, ref_index, sheetname, cell_overwrite_ok=True):
-        import Worksheet, Utils
+        print 'copy sheet from book..%s..%s' % (ref_index, sheetname)
         if not isinstance(sheetname, unicode):
             sheetname = sheetname.decode(self.encoding)
         if not Utils.valid_sheet_name(sheetname):

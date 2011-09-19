@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-
+# cython: profile=True
 
 from struct import unpack, pack
 import BIFFRecords
 
 
-class CellBase(object):
-
-    @classmethod
-    def create(*args, **kws):
-        self = cls.__new__()
-
-
-class StrCell(object):
-    __slots__ = ["rowx", "colx", "xf_idx", "sst_idx"]
+cdef class StrCell:
 
     def __init__(self, rowx, colx, xf_idx, sst_idx):
         self.rowx = rowx
@@ -20,33 +13,40 @@ class StrCell(object):
         self.xf_idx = xf_idx
         self.sst_idx = sst_idx
 
-    def get_biff_data(self):
+    cpdef get_biff_data(self):
         # return BIFFRecords.LabelSSTRecord(self.rowx, self.colx, self.xf_idx, self.sst_idx).get()
         return pack('<5HL', 0x00FD, 10, self.rowx, self.colx, self.xf_idx, self.sst_idx)
 
-    def get_copy(self):
-        cell = StrCell(self.rowx, self.colx, self.xf_idx, self.sst_idx)
-        #print cell.rowx, cell.colx, cell.xf_idx, cell.sst_idx
+    cpdef get_copy(self):
+        cdef StrCell cell = StrCell.__new__(StrCell)
+        cell.rowx = self.rowx
+        cell.colx = self.colx
+        cell.xf_idx = self.xf_idx
+        cell.sst_idx = self.sst_idx
         return cell
 
-class BlankCell(object):
-    __slots__ = ["rowx", "colx", "xf_idx"]
+
+cdef class BlankCell:
 
     def __init__(self, rowx, colx, xf_idx):
         self.rowx = rowx
         self.colx = colx
         self.xf_idx = xf_idx
 
-    def get_biff_data(self):
+    cpdef get_biff_data(self):
         # return BIFFRecords.BlankRecord(self.rowx, self.colx, self.xf_idx).get()
         return pack('<5H', 0x0201, 6, self.rowx, self.colx, self.xf_idx)
 
-    def get_copy(self):
-        cell = BlankCell(self.rowx, self.colx, self.xf_idx)
+    cpdef get_copy(self):
+        #return BlankCell(self.rowx, self.colx, self.xf_idx)
+        cdef BlankCell cell = BlankCell.__new__(BlankCell)
+        cell.rowx = self.rowx
+        cell.colx = self.colx
+        cell.xf_idx = self.xf_idx
         return cell
 
-class MulBlankCell(object):
-    __slots__ = ["rowx", "colx1", "colx2", "xf_idx"]
+
+cdef class MulBlankCell:
 
     def __init__(self, rowx, colx1, colx2, xf_idx):
         self.rowx = rowx
@@ -54,16 +54,16 @@ class MulBlankCell(object):
         self.colx2 = colx2
         self.xf_idx = xf_idx
 
-    def get_biff_data(self):
+    cpdef get_biff_data(self):
         return BIFFRecords.MulBlankRecord(self.rowx,
             self.colx1, self.colx2, self.xf_idx).get()
 
-    def get_copy(self):
-        cell = MulBlankCell(self.rowx, self.colx1, self.colx2, self.xf_idx)
+    cpdef get_copy(self):
+        cdef MulBlankCell cell = MulBlankCell(self.rowx, self.colx1, self.colx2, self.xf_idx)
         return cell
 
-class NumberCell(object):
-    __slots__ = ["rowx", "colx", "xf_idx", "number"]
+
+cdef class NumberCell(object):
 
     def __init__(self, rowx, colx, xf_idx, number):
         self.rowx = rowx
@@ -71,7 +71,7 @@ class NumberCell(object):
         self.xf_idx = xf_idx
         self.number = float(number)
 
-    def get_encoded_data(self):
+    cpdef get_encoded_data(self):
         rk_encoded = 0
         num = self.number
 
@@ -121,18 +121,17 @@ class NumberCell(object):
         #print
         return 0, pack('<5Hd', 0x0203, 14, self.rowx, self.colx, self.xf_idx, num)
 
-    def get_biff_data(self):
+    cpdef get_biff_data(self):
         isRK, value = self.get_encoded_data()
         if isRK:
             return pack('<5Hi', 0x27E, 10, self.rowx, self.colx, self.xf_idx, value)
         return value # NUMBER record already packed
 
-    def get_copy(self):
-        cell = NumberCell(self.rowx, self.colx, self.xf_idx, self.number)
+    cpdef get_copy(self):
+        cdef NumberCell cell = NumberCell(self.rowx, self.colx, self.xf_idx, self.number)
         return cell
 
-class BooleanCell(object):
-    __slots__ = ["rowx", "colx", "xf_idx", "number"]
+cdef class BooleanCell:
 
     def __init__(self, rowx, colx, xf_idx, number):
         self.rowx = rowx
@@ -140,12 +139,12 @@ class BooleanCell(object):
         self.xf_idx = xf_idx
         self.number = number
 
-    def get_biff_data(self):
+    cpdef get_biff_data(self):
         return BIFFRecords.BoolErrRecord(self.rowx,
             self.colx, self.xf_idx, self.number, 0).get()
 
-    def get_copy(self):
-        cell = BooleanCell(self.rowx, self.colx, self.xf_idx, self.number)
+    cpdef get_copy(self):
+        cdef BooleanCell cell = BooleanCell(self.rowx, self.colx, self.xf_idx, self.number)
         return cell
 
 error_code_map = {
@@ -165,8 +164,9 @@ error_code_map = {
     '#N/A!'  : 42, # Argument or function not available
 }
 
-class ErrorCell(object):
-    __slots__ = ["rowx", "colx", "xf_idx", "number", 'error_string_or_code']
+
+cdef class ErrorCell:
+    #__slots__ = ["rowx", "colx", "xf_idx", "number", 'error_string_or_code']
 
     def __init__(self, rowx, colx, xf_idx, error_string_or_code):
         self.rowx = rowx
@@ -178,16 +178,17 @@ class ErrorCell(object):
         except KeyError:
             raise Exception('Illegal error value (%r)' % error_string_or_code)
 
-    def get_biff_data(self):
+    cpdef get_biff_data(self):
         return BIFFRecords.BoolErrRecord(self.rowx,
             self.colx, self.xf_idx, self.number, 1).get()
 
-    def get_copy(self):
-        cell = ErrorCell(self.rowx, self.colx, self.xf_idx, self.error_string_or_code)
+    cpdef get_copy(self):
+        cdef ErrorCell cell = ErrorCell(self.rowx, self.colx, self.xf_idx, self.error_string_or_code)
         return cell
 
-class FormulaCell(object):
-    __slots__ = ["rowx", "colx", "xf_idx", "frmla", "calc_flags"]
+
+cdef class FormulaCell:
+    #__slots__ = ["rowx", "colx", "xf_idx", "frmla", "calc_flags"]
 
     def __init__(self, rowx, colx, xf_idx, frmla, calc_flags=0):
         self.rowx = rowx
@@ -196,86 +197,12 @@ class FormulaCell(object):
         self.frmla = frmla
         self.calc_flags = calc_flags
 
-    def get_biff_data(self):
+    cpdef get_biff_data(self):
         return BIFFRecords.FormulaRecord(self.rowx,
             self.colx, self.xf_idx, self.frmla.rpn(), self.calc_flags).get()
 
-    def get_copy(self):
-        cell = FormulaCell(self.rowx, self.colx, self.xf_idx, self.frmla, self.calc_flags)
+    cpdef get_copy(self):
+        cdef FormulaCell cell = FormulaCell(self.rowx, self.colx, self.xf_idx, self.frmla, self.calc_flags)
         return cell
 
-# module-level function for *internal* use by the Row module
-
-def _get_cells_biff_data_mul(rowx, cell_items):
-    # Return the BIFF data for all cell records in the row.
-    # Adjacent BLANK|RK records are combined into MUL(BLANK|RK) records.
-    pieces = []
-    nitems = len(cell_items)
-    i = 0
-    while i < nitems:
-        icolx, icell = cell_items[i]
-        if isinstance(icell, NumberCell):
-            isRK, value = icell.get_encoded_data()
-            if not isRK:
-                pieces.append(value) # pre-packed NUMBER record
-                i += 1
-                continue
-            muldata = [(value, icell.xf_idx)]
-            target = NumberCell
-        elif isinstance(icell, BlankCell):
-            muldata = [icell.xf_idx]
-            target = BlankCell
-        else:
-            pieces.append(icell.get_biff_data())
-            i += 1
-            continue
-        lastcolx = icolx
-        j = i
-        packed_record = ''
-        for j in xrange(i+1, nitems):
-            jcolx, jcell = cell_items[j]
-            if jcolx != lastcolx + 1:
-                nexti = j
-                break
-            if not isinstance(jcell, target):
-                nexti = j
-                break
-            if target == NumberCell:
-                isRK, value = jcell.get_encoded_data()
-                if not isRK:
-                    packed_record = value
-                    nexti = j + 1
-                    break
-                muldata.append((value, jcell.xf_idx))
-            else:
-                muldata.append(jcell.xf_idx)
-            lastcolx = jcolx
-        else:
-            nexti = j + 1
-        if target == NumberCell:
-            if lastcolx == icolx:
-                # RK record
-                value, xf_idx = muldata[0]
-                pieces.append(pack('<5Hi', 0x027E, 10, rowx, icolx, xf_idx, value))
-            else:
-                # MULRK record
-                nc = lastcolx - icolx + 1
-                pieces.append(pack('<4H', 0x00BD, 6 * nc + 6, rowx, icolx))
-                pieces.append(''.join([pack('<Hi', xf_idx, value) for value, xf_idx in muldata]))
-                pieces.append(pack('<H', lastcolx))
-        else:
-            if lastcolx == icolx:
-                # BLANK record
-                xf_idx = muldata[0]
-                pieces.append(pack('<5H', 0x0201, 6, rowx, icolx, xf_idx))
-            else:
-                # MULBLANK record
-                nc = lastcolx - icolx + 1
-                pieces.append(pack('<4H', 0x00BE, 2 * nc + 6, rowx, icolx))
-                pieces.append(''.join([pack('<H', xf_idx) for xf_idx in muldata]))
-                pieces.append(pack('<H', lastcolx))
-        if packed_record:
-            pieces.append(packed_record)
-        i = nexti
-    return ''.join(pieces)
 

@@ -3,3 +3,6 @@ build
 dist
 xlpy.egg-info
 note
+*.tmp
+*.swp
+*.log

@@ -8,8 +8,8 @@ if sys.version_info[:2] < (2, 3):
     sys.exit(1)
 
 from Workbook import Workbook
-from Worksheet import Worksheet
-from Row import Row
+from worksheet import Worksheet
+from row import Row
 from Column import Column
 from Formatting import Font, Alignment, Borders, Pattern, Protection
 from Style import XFStyle, easyxf
