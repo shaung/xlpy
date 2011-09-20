@@ -366,7 +366,7 @@ class Workbook(object):
         return self.__sst.str_index(s)
 
     def add_sheet(self, sheetname, cell_overwrite_ok=True):
-        print 'add sheet..%s' % (sheetname)
+        #print 'add sheet..%s' % (sheetname)
         if not isinstance(sheetname, unicode):
             sheetname = sheetname.decode(self.encoding)
         if not Utils.valid_sheet_name(sheetname):
@@ -380,7 +380,7 @@ class Workbook(object):
         return self.__worksheets[-1]
 
     def copy_sheet(self, ref_index, sheetname, cell_overwrite_ok=True):
-        print 'copy sheet..%s..%s' % (ref_index, sheetname)
+        #print 'copy sheet..%s..%s' % (ref_index, sheetname)
         if not isinstance(sheetname, unicode):
             sheetname = sheetname.decode(self.encoding)
         if not Utils.valid_sheet_name(sheetname):
@@ -394,7 +394,7 @@ class Workbook(object):
         return sht
 
     def copy_sheet_from_book(self, other_book, ref_index, sheetname, cell_overwrite_ok=True):
-        print 'copy sheet from book..%s..%s' % (ref_index, sheetname)
+        #print 'copy sheet from book..%s..%s' % (ref_index, sheetname)
         if not isinstance(sheetname, unicode):
             sheetname = sheetname.decode(self.encoding)
         if not Utils.valid_sheet_name(sheetname):
