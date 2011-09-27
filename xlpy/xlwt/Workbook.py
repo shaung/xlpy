@@ -79,7 +79,7 @@ class Workbook(object):
         self.__vscroll_visible = 1
         self.__tabs_visible = 1
 
-        self.__styles = Style.StyleCollection(style_compression)
+        self._styles = Style.StyleCollection(style_compression)
 
         self.__dates_1904 = 0
         self.__use_cell_values = 1
@@ -131,7 +131,7 @@ class Workbook(object):
 
 
     def get_style_stats(self):
-        return self.__styles.stats[:]
+        return self._styles.stats[:]
 
     def set_owner(self, value):
         self.__owner = value
@@ -336,7 +336,8 @@ class Workbook(object):
     #################################################################
 
     def get_default_style(self):
-        return self.__styles.default_style
+        #return self._styles.default_style
+        return Style.default_style
 
     default_style = property(get_default_style)
 
@@ -345,10 +346,10 @@ class Workbook(object):
     ##################################################################
 
     def add_style(self, style):
-        return self.__styles.add(style)
+        return self._styles.add(style)
 
     def get_style(self, idx):
-        return self.__styles.get_style(idx)
+        return self._styles.get_style(idx)
 
     def add_str(self, s):
         return self.__sst.add_str(s)
@@ -601,7 +602,7 @@ class Workbook(object):
         return BIFFRecords.BookBoolRecord().get()
 
     def __all_fonts_num_formats_xf_styles_rec(self):
-        return self.__styles.get_biff_data()
+        return self._styles.get_biff_data()
 
     def __palette_rec(self):
         result = ''

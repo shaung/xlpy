@@ -82,8 +82,9 @@ class StyleCollection(object):
         for fmtidx, fmtstr in zip(range(37, 50), StyleCollection._std_num_fmt_list[23:]):
             self._num_formats[fmtstr] = fmtidx
 
-        self.default_style = XFStyle()
-        self._default_xf = self._add_style(self.default_style)[0]
+        #self.default_style = XFStyle()
+        #self._default_xf = self._add_style(self.default_style)[0]
+        self._default_xf = self._add_style(default_style)[0]
 
     def add(self, style):
         if style == None:
@@ -189,8 +190,9 @@ class StyleCollection(object):
 
     def _all_cell_styles(self):
         result = ''
+        default_xf_biff = XFRecord(self._default_xf, 'style').get()
         for i in range(0, 16):
-            result += XFRecord(self._default_xf, 'style').get()
+            result += default_xf_biff
         if self.style_compression == 2:
             alist = self._xf_x2id.items()
         else:

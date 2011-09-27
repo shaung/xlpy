@@ -121,7 +121,7 @@ cdef class Row:
 
     def set_style(self, style):
         self.__adjust_height(style)
-        self._xf_index = self.__parent_wb.add_style(style)
+        self._xf_index = self.__parent_wb._styles.add(style)
         self._has_default_xf_index = 1
 
     def get_cells_count(self):
@@ -174,59 +174,95 @@ cdef class Row:
     def set_cell_text(self, colx, value, style=Style.default_style):
         self.__adjust_height(style)
         self.__adjust_bound_col_idx(colx)
-        xf_index = self.__parent_wb.add_style(style)
+        xf_index = self.__parent_wb._styles.add(style)
         self.insert_cell(colx, StrCell(self._idx, colx, xf_index, self.__parent_wb.add_str(value)))
 
     def set_cell_blank(self, colx, style=Style.default_style):
         self.__adjust_height(style)
         self.__adjust_bound_col_idx(colx)
-        xf_index = self.__parent_wb.add_style(style)
+        xf_index = self.__parent_wb._styles.add(style)
         self.insert_cell(colx, BlankCell(self._idx, colx, xf_index))
 
     def set_cell_mulblanks(self, first_colx, last_colx, style=Style.default_style):
         assert 0 <= first_colx <= last_colx <= 255
         self.__adjust_height(style)
         self.__adjust_bound_col_idx(first_colx, last_colx)
-        xf_index = self.__parent_wb.add_style(style)
+        xf_index = self.__parent_wb._styles.add(style)
         # ncols = last_colx - first_colx + 1
         self.insert_mulcells(first_colx, last_colx, MulBlankCell(self._idx, first_colx, last_colx, xf_index))
 
     def set_cell_number(self, colx, number, style=Style.default_style):
         self.__adjust_height(style)
         self.__adjust_bound_col_idx(colx)
-        xf_index = self.__parent_wb.add_style(style)
+        xf_index = self.__parent_wb._styles.add(style)
         self.insert_cell(colx, NumberCell(self._idx, colx, xf_index, number))
 
     def set_cell_date(self, colx, datetime_obj, style=Style.default_style):
         self.__adjust_height(style)
         self.__adjust_bound_col_idx(colx)
-        xf_index = self.__parent_wb.add_style(style)
+        xf_index = self.__parent_wb._styles.add(style)
         self.insert_cell(colx,
             NumberCell(self._idx, colx, xf_index, self.__excel_date_dt(datetime_obj)))
 
     def set_cell_formula(self, colx, formula, style=Style.default_style, calc_flags=0):
         self.__adjust_height(style)
         self.__adjust_bound_col_idx(colx)
-        xf_index = self.__parent_wb.add_style(style)
+        xf_index = self.__parent_wb._styles.add(style)
         self.__parent_wb.add_sheet_reference(formula)
         self.insert_cell(colx, FormulaCell(self._idx, colx, xf_index, formula, calc_flags=0))
 
     def set_cell_boolean(self, colx, value, style=Style.default_style):
         self.__adjust_height(style)
         self.__adjust_bound_col_idx(colx)
-        xf_index = self.__parent_wb.add_style(style)
+        xf_index = self.__parent_wb._styles.add(style)
         self.insert_cell(colx, BooleanCell(self._idx, colx, xf_index, bool(value)))
 
     def set_cell_error(self, colx, error_string_or_code, style=Style.default_style):
         self.__adjust_height(style)
         self.__adjust_bound_col_idx(colx)
-        xf_index = self.__parent_wb.add_style(style)
+        xf_index = self.__parent_wb._styles.add(style)
         self.insert_cell(colx, ErrorCell(self._idx, colx, xf_index, error_string_or_code))
 
-    def write(self, col, label, style=Style.default_style):
+    def write(self, col, label, style=None):
         self.__adjust_height(style)
         self.__adjust_bound_col_idx(col)
-        style_index = self.__parent_wb.add_style(style)
+        if style is None or style == Style.default_style:
+            style_index = 0x0F
+        else:
+            style_index = self.__parent_wb._styles.add(style)
+
+        update_kws = {'xf_idx': style_index}
+        if isinstance(label, basestring):
+            if len(label) > 0:
+                cell_cls = StrCell
+                update_kws['sst_idx'] = self.__parent_wb.add_str(label)
+            else:
+                cell_cls = BlankCell
+        elif isinstance(label, bool):
+            cell_cls = BooleanCell
+            update_kws['number'] = label
+        elif isinstance(label, (float, int, long, Decimal)):
+            cell_cls = NumberCell
+            update_kws['number'] = float(label)
+        elif isinstance(label, (dt.datetime, dt.date, dt.time)):
+            date_number = self.__excel_date_dt(label)
+            cell_cls = NumberCell
+            update_kws['number'] = float(date_number)
+        elif label is None:
+            cell_cls = BlankCell
+        elif isinstance(label, ExcelFormula.Formula):
+            self.__parent_wb.add_sheet_reference(label)
+            cell_cls = FormulaCell
+            update_kws['frmla'] = label
+
+        current_cell = self._cells.get(col, None)
+        if current_cell:
+            if isinstance(current_cell, cell_cls):
+                # same type, just update, no new insert
+                for k, v in update_kws.iteritems():
+                    setattr(current_cell, k, v)
+                return
+
         if isinstance(label, basestring):
             if len(label) > 0:
                 self.insert_cell(col,
@@ -273,7 +309,7 @@ cdef class Row:
         same_book = other_book == self.__parent_wb
         row = Row(rowx, parent_sheet)
 
-        for indx, cell in self._cells.items():
+        for indx, cell in self._cells.iteritems():
             if not cell:
                 #row._append_cell(indx, cell)
                 row._cells[indx] = cell
@@ -281,11 +317,14 @@ cdef class Row:
 
             rslt = cell.get_copy()
             if not same_book:
-                style = self.__parent_wb.get_style(cell.xf_idx)
-                if style:
-                    rslt.xf_idx = other_book.add_style(style)
-                else:
+                if cell.xf_idx == 0x0F:
                     rslt.xf_idx = 0x0F
+                else:
+                    style = self.__parent_wb._styles.get_style(cell.xf_idx)
+                    if style:
+                        rslt.xf_idx = other_book._styles.add(style)
+                    else:
+                        rslt.xf_idx = 0x0F
 
             if isinstance(cell, StrCell):
                 sst_idx = cell.sst_idx
@@ -302,12 +341,12 @@ cdef class Row:
         row._min_col_idx = self._min_col_idx
         row._max_col_idx = self._max_col_idx
 
-        if same_book:
+        if same_book or self._xf_index == 0x0F:
             row._xf_index = self._xf_index
         else:
-            style = self.__parent_wb.get_style(self._xf_index)
+            style = self.__parent_wb._styles.get_style(self._xf_index)
             if style:
-                xf_idx = other_book.add_style(style)
+                xf_idx = other_book._styles.add(style)
             else:
                 row._xf_index = 0x0F
 
