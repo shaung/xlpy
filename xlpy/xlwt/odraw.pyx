@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+# cython: profile=True
 
 from BIFFRecords import BiffRecord
 from struct import *
 import Bitmap
 
 
-class ODrawRecordBase(object):
+class ODrawRecordBase():
     def get_full_len(self):
-        len = self.get_len()
-        return len > 0 and (len + 8) or 0
+        length = self.get_len()
+        return length > 0 and (length + 8) or 0
 
     def get_len(self):
         if self._len < 0:
