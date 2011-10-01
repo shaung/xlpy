@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# cython: profile=True
 
 '''
             BOF
@@ -39,7 +40,7 @@ import BIFFRecords
 import Bitmap
 import Formatting
 import Style
-import tempfile
+import os, tempfile
 import odraw
 
 
@@ -1361,9 +1362,10 @@ class Worksheet(object):
             self.__protection_rec(),
             ]
         if self.row_tempfile:
-            self.row_tempfile.flush()
-            self.row_tempfile.seek(0)
-            result.append(self.row_tempfile.read())
+            with open(self.row_tempfile, 'rb') as f:
+                #self.row_tempfile.flush()
+                #self.row_tempfile.seek(0)
+                result.append(f.read())
         result.extend([
             self.__row_blocks_rec(),
             self.__merged_rec(),
@@ -1377,8 +1379,13 @@ class Worksheet(object):
 
     def flush_row_data(self):
         if self.row_tempfile is None:
-            self.row_tempfile = tempfile.TemporaryFile()
-        self.row_tempfile.write(self.__row_blocks_rec())
+            #f = tempfile.NamedTemporaryFile()
+            fd, self.row_tempfile = tempfile.mkstemp(suffix='.sheet')
+            with os.fdopen(fd, 'wb') as f:
+                f.write(self.__row_blocks_rec())
+        else:
+            with open(self.row_tempfile, 'wb') as f:
+                f.write(self.__row_blocks_rec())
         for rowx in self.__rows:
             self.__flushed_rows[rowx] = 1
         self.__update_row_visible_levels()
@@ -1528,7 +1535,7 @@ class Worksheet(object):
         sht.first_used_row = self.first_used_row
         sht.last_used_col = self.last_used_col
         sht.first_used_col = self.first_used_col
-        self.row_tempfile = self.row_tempfile
+        sht.row_tempfile = self.row_tempfile
         sht.__flushed_rows = self.__flushed_rows.copy()
         sht.__row_visible_levels = self.__row_visible_levels
 
