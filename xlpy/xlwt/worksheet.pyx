@@ -43,8 +43,46 @@ import Style
 import os, tempfile
 import odraw
 
+from Column import Column
+import row
+from row cimport Row
+import cell
+from cell cimport Cell
 
-class Worksheet(object):
+
+cdef class Worksheet:
+
+    cdef object __weakref__
+
+    cdef Row, Column
+
+    cdef public __name, _parent, _cell_overwrite_ok
+    cdef public dict  __rows, __cols
+    cdef readonly list __merged_ranges
+    cdef public __bmp_rec, __idx, __pic_rec
+    cdef public int __show_formulas, __show_grid, __show_headers, __panes_frozen, show_zero_values
+    cdef public int __auto_colour_grid, __cols_right_to_left, __show_outline, __remove_splits, __selected
+    cdef public int __sheet_visible, __page_preview, __first_visible_row, __first_visible_col, __grid_colour
+    cdef public __preview_magn, __normal_magn, __scl_magn, explicit_magn_setting, visibility
+    cdef public __vert_split_pos, __horz_split_pos, __vert_split_first_visible, __horz_split_first_visible
+    cdef public split_position_units_are_twips
+    cdef public __row_gut_width, __col_gut_height
+    cdef public __show_auto_page_breaks, __dialogue_sheet, __auto_style_outline, __outline_below, __outline_right
+    cdef public __fit_num_pages, __show_row_outline, __show_col_outline, __alt_expr_eval, __alt_formula_entries
+    cdef public __row_default_height, row_default_height_mismatch, row_default_hidden, row_default_space_above, row_default_space_below
+    cdef public __col_default_width
+    cdef public int __calc_mode, __calc_count, __RC_ref_mode, __iterations_on, __save_recalc
+    cdef public float __delta
+    cdef public int __print_headers, __print_grid, __grid_set
+    cdef public __vert_page_breaks, __horz_page_breaks, __header_str, __footer_str, __print_centered_vert, __print_centered_horz
+    cdef public float __left_margin, __right_margin, __top_margin, __bottom_margin
+    cdef public int __paper_size_code, __print_scaling, __start_page_number, __fit_width_to_pages, __fit_height_to_pages
+    cdef public int __print_in_rows, __portrait, __print_not_colour, __print_draft, __print_notes, __print_notes_at_end
+    cdef public __print_omit_errors, __print_hres, __print_vres, __header_margin, __footer_margin, __copies_num
+    cdef public int __wnd_protect, __obj_protect, __protect, __scen_protect
+    cdef public __password
+    cdef public int last_used_row, first_used_row, last_used_col, first_used_col
+    cdef public row_tempfile, __flushed_rows, __row_visible_levels
 
     # a safe default value, 3 is always valid!
     active_pane = 3
@@ -53,11 +91,9 @@ class Worksheet(object):
     ## Constructor
     #################################################################
     def __init__(self, sheetname, parent_book, cell_overwrite_ok=False):
-        import row
-        self.Row = row.Row
 
-        import Column
-        self.Column = Column.Column
+        self.Row = Row
+        self.Column = Column
 
         self.__name = sheetname
         self._parent = parent_book
@@ -1106,7 +1142,7 @@ class Worksheet(object):
 
     def col(self, indx):
         if indx not in self.__cols:
-            self.__cols[indx] = self.Column(indx, self)
+            self.__cols[indx] = Column(indx, self)
         return self.__cols[indx]
 
     def row(self, indx):
@@ -1391,42 +1427,52 @@ class Worksheet(object):
         self.__update_row_visible_levels()
         self.__rows = {}
 
-    def insert_row_before(self, idx):
-        for x, row in self.__rows.copy().items():
-            if x >= idx:
-                #row.move_to(x+1)
-                new_idx = x + 1
-                row._idx = new_idx
-                for cell in row._cells.values():
-                    if cell is not None:
-                        try:
-                            cell.rowx = new_idx 
-                        except:
-                            pass
-                self.__rows[x+1] = row
-        self.__rows[idx] = self.Row(idx, self)
-        new_merged_ranges = []
-        for r in self.__merged_ranges:
+    def insert_row_before(self, int idx):
+        cdef Row row
+        cdef Cell cell
+
+        indexes = (x for x in self.__rows if x >= idx)
+        for rowidx in reversed(sorted(indexes)):
+            row = self.__rows[rowidx]
+            new_idx = rowidx + 1
+            row._idx = new_idx
+            for cell in row._cells.values():
+                if cell is not None:
+                    try:
+                        cell.rowx = new_idx 
+                    except:
+                        pass
+            self.__rows[new_idx] = row
+            self.__rows[rowidx] = None
+
+        row = Row(idx, self)
+        self.__rows[idx] = row
+
+        self.update_ranges(idx)
+
+    def update_ranges(self, idx):
+        for i, r in enumerate(self.__merged_ranges):
             r1, r2, c1, c2 = r
             if r1 >= idx:
-                new_merged_ranges.append((r1 + 1, r2 + 1, c1, c2))
+                self.__merged_ranges[i] = (r1 + 1, r2 + 1, c1, c2)
             elif r2 >= idx:
-                new_merged_ranges.append((r1, r2 + 1, c1, c2))
-            else:
-                new_merged_ranges.append(r)
-        self.__merged_ranges = new_merged_ranges[:]
+                self.__merged_ranges[i] = (r1, r2 + 1, c1, c2)
 
     def set_print_title(self, r1, r2):
         self._parent.add_print_title(self.__idx, r1, r2)
 
-    def get_copy(self, name, parent=None):
+    cpdef get_copy(self, name, parent=None):
+        cdef Worksheet sht
+        cdef Row row
+        cdef int indx
+
         if parent is None:
             parent = self._parent
         sht = Worksheet(name, parent, cell_overwrite_ok=True)
-        for indx, row in self.__rows.items():
+        for indx, row in self.__rows.iteritems():
             sht.__rows[indx] = row.get_copy(indx, sht)
 
-        for indx, col in self.__cols.items():
+        for indx, col in self.__cols.iteritems():
             sht.__cols[indx] = col.get_copy(indx, sht)
 
         sht.__merged_ranges = self.__merged_ranges[:]

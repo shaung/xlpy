@@ -20,7 +20,7 @@ ext_modules = []
 if use_cython:
     ext_modules = [
         Extension("xlpy.xlwt.cell", [ "xlpy/xlwt/cell.pyx", "xlpy/xlwt/cell.pxd" ]),
-        Extension("xlpy.xlwt.row", [ "xlpy/xlwt/row.pyx" ]),
+        Extension("xlpy.xlwt.row", [ "xlpy/xlwt/row.pyx", "xlpy/xlwt/row.pxd" ]),
         Extension("xlpy.xlwt.worksheet", [ "xlpy/xlwt/worksheet.pyx" ]),
         Extension("xlpy.xlwt.odraw", [ "xlpy/xlwt/odraw.pyx" ]),
     ]

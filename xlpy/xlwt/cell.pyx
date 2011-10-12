@@ -5,7 +5,11 @@ from struct import unpack, pack
 import BIFFRecords
 
 
-cdef class StrCell:
+cdef class Cell:
+    pass
+
+
+cdef class StrCell(Cell):
 
     def __init__(self, rowx, colx, xf_idx, sst_idx):
         self.rowx = rowx
@@ -26,7 +30,7 @@ cdef class StrCell:
         return cell
 
 
-cdef class BlankCell:
+cdef class BlankCell(Cell):
 
     def __init__(self, rowx, colx, xf_idx):
         self.rowx = rowx
@@ -46,7 +50,7 @@ cdef class BlankCell:
         return cell
 
 
-cdef class MulBlankCell:
+cdef class MulBlankCell(Cell):
 
     def __init__(self, rowx, colx1, colx2, xf_idx):
         self.rowx = rowx
@@ -63,7 +67,7 @@ cdef class MulBlankCell:
         return cell
 
 
-cdef class NumberCell(object):
+cdef class NumberCell(Cell):
 
     def __init__(self, rowx, colx, xf_idx, number):
         self.rowx = rowx
@@ -131,7 +135,8 @@ cdef class NumberCell(object):
         cdef NumberCell cell = NumberCell(self.rowx, self.colx, self.xf_idx, self.number)
         return cell
 
-cdef class BooleanCell:
+
+cdef class BooleanCell(Cell):
 
     def __init__(self, rowx, colx, xf_idx, number):
         self.rowx = rowx
@@ -165,7 +170,7 @@ error_code_map = {
 }
 
 
-cdef class ErrorCell:
+cdef class ErrorCell(Cell):
     #__slots__ = ["rowx", "colx", "xf_idx", "number", 'error_string_or_code']
 
     def __init__(self, rowx, colx, xf_idx, error_string_or_code):
@@ -187,7 +192,7 @@ cdef class ErrorCell:
         return cell
 
 
-cdef class FormulaCell:
+cdef class FormulaCell(Cell):
     #__slots__ = ["rowx", "colx", "xf_idx", "frmla", "calc_flags"]
 
     def __init__(self, rowx, colx, xf_idx, frmla, calc_flags=0):

@@ -28,7 +28,8 @@ cdef class Row:
 
     cdef public int _idx, _min_col_idx, _max_col_idx, _xf_index, _has_default_xf_index, _height_in_pixels
     cdef public int height, has_default_height, height_mismatch, level, collapse, hidden, space_above, space_below
-    cdef public __parent, __parent_wb, _cells
+    cdef public __parent, __parent_wb
+    cdef public dict _cells
 
     cpdef get_book(self)
 
@@ -80,5 +81,5 @@ cdef class Row:
 
     cpdef move_to(self, int new_idx)
 
-    cpdef get_copy(self, rowx, parent_sheet)
+    cpdef get_copy(self, int rowx, parent_sheet)
 

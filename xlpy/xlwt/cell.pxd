@@ -5,7 +5,11 @@ from struct import unpack, pack
 import BIFFRecords
 
 
-cdef class StrCell:
+cdef class Cell:
+    pass
+
+
+cdef class StrCell(Cell):
 
     cdef public int rowx, colx, xf_idx, sst_idx
 
@@ -14,7 +18,7 @@ cdef class StrCell:
     cpdef get_copy(self)
 
 
-cdef class BlankCell:
+cdef class BlankCell(Cell):
     cdef public int rowx, colx, xf_idx
 
     cpdef get_biff_data(self)
@@ -22,7 +26,7 @@ cdef class BlankCell:
     cpdef get_copy(self)
 
 
-cdef class MulBlankCell:
+cdef class MulBlankCell(Cell):
     cdef public int rowx, colx1, colx2, xf_idx
 
     cpdef get_biff_data(self)
@@ -30,7 +34,7 @@ cdef class MulBlankCell:
     cpdef get_copy(self)
 
 
-cdef class NumberCell(object):
+cdef class NumberCell(Cell):
 
     cdef public int rowx, colx, xf_idx
     cdef public float number
@@ -42,7 +46,7 @@ cdef class NumberCell(object):
     cpdef get_copy(self)
 
 
-cdef class BooleanCell:
+cdef class BooleanCell(Cell):
 
     cdef public int rowx, colx, xf_idx
     cdef public float number
@@ -70,7 +74,7 @@ error_code_map = {
 }
 
 
-cdef class ErrorCell:
+cdef class ErrorCell(Cell):
     #__slots__ = ["rowx", "colx", "xf_idx", "number", 'error_string_or_code']
 
     cdef public int rowx, colx, xf_idx, number
@@ -81,7 +85,7 @@ cdef class ErrorCell:
     cpdef get_copy(self)
 
 
-cdef class FormulaCell:
+cdef class FormulaCell(Cell):
     #__slots__ = ["rowx", "colx", "xf_idx", "frmla", "calc_flags"]
     cdef public int rowx, colx, xf_idx, calc_flags
     cdef public frmla
