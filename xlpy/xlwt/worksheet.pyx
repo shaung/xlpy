@@ -1427,14 +1427,16 @@ cdef class Worksheet:
         self.__update_row_visible_levels()
         self.__rows = {}
 
-    def insert_row_before(self, int idx):
+    def insert_row_before(self, int idx, int nrows=1):
         cdef Row row
         cdef Cell cell
+        cdef int i, rowidx, new_idx
+        cdef dict _rows = self.__rows
 
-        indexes = (x for x in self.__rows if x >= idx)
+        indexes = (x for x in _rows if x >= idx)
         for rowidx in reversed(sorted(indexes)):
             row = self.__rows[rowidx]
-            new_idx = rowidx + 1
+            new_idx = rowidx + nrows
             row._idx = new_idx
             for cell in row._cells.values():
                 if cell is not None:
@@ -1445,18 +1447,19 @@ cdef class Worksheet:
             self.__rows[new_idx] = row
             self.__rows[rowidx] = None
 
-        row = Row(idx, self)
-        self.__rows[idx] = row
+        for i in range(idx, idx + nrows):
+            row = Row(i, self)
+            self.__rows[i] = row
 
-        self.update_ranges(idx)
+        self.update_ranges(idx, nrows)
 
-    def update_ranges(self, idx):
+    def update_ranges(self, int idx, int nrows=1):
         for i, r in enumerate(self.__merged_ranges):
             r1, r2, c1, c2 = r
             if r1 >= idx:
-                self.__merged_ranges[i] = (r1 + 1, r2 + 1, c1, c2)
+                self.__merged_ranges[i] = (r1 + nrows, r2 + nrows, c1, c2)
             elif r2 >= idx:
-                self.__merged_ranges[i] = (r1, r2 + 1, c1, c2)
+                self.__merged_ranges[i] = (r1, r2 + nrows, c1, c2)
 
     def set_print_title(self, r1, r2):
         self._parent.add_print_title(self.__idx, r1, r2)
