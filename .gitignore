@@ -6,3 +6,4 @@ note
 *.tmp
 *.swp
 *.log
+*.so
