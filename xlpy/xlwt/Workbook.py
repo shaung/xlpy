@@ -41,8 +41,8 @@ Record Order in BIFF8
       EOF
 '''
 
-import BIFFRecords
-import Style
+import biff_records as BIFFRecords
+import style as Style
 import odraw
 from worksheet import Worksheet
 import Utils

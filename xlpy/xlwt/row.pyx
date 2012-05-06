@@ -3,8 +3,8 @@
 
 
 from struct import unpack, pack
-import BIFFRecords
-import Style
+import biff_records as BIFFRecords
+import style as Style
 cimport cell
 import cell
 from cell cimport Cell, StrCell, BlankCell, NumberCell, FormulaCell, MulBlankCell, BooleanCell, ErrorCell, \

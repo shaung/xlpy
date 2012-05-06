@@ -10,7 +10,7 @@ if sys.version_info[:2] < (2, 3):
 from Workbook import Workbook
 from worksheet import Worksheet
 from row import Row
-from Column import Column
-from Formatting import Font, Alignment, Borders, Pattern, Protection
-from Style import XFStyle, easyxf
+from column import Column
+from formatting import Font, Alignment, Borders, Pattern, Protection
+from style import XFStyle, easyxf
 from ExcelFormula import *

@@ -1,4 +1,6 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
+# cython: profile=True
+
 from struct import pack
 from UnicodeUtils import upack1, upack2
 import sys
@@ -10,7 +12,6 @@ class SharedStringTable(object):
     def __init__(self, encoding):
         self.encoding = encoding
         self._str_indexes = {}
-        self._str_indexes_reversed = {}
         self._tally = []
         self._add_calls = 0
         # Following 3 attrs are used for temporary storage in the
@@ -27,7 +28,6 @@ class SharedStringTable(object):
         if s not in self._str_indexes:
             idx = len(self._str_indexes)
             self._str_indexes[s] = idx
-            self._str_indexes_reversed[idx] = s
             self._tally.append(1)
         else:
             idx = self._str_indexes[s]
@@ -35,11 +35,10 @@ class SharedStringTable(object):
         return idx
 
     def get_str(self, idx):
-        return self._str_indexes_reversed.get(idx, '')
-        #for s, sst_idx in self._str_indexes.items():
-        #    if sst_idx == idx:
-        #        return s
-        #return ''
+        for s, sst_idx in self._str_indexes.items():
+            if sst_idx == idx:
+                return s
+        return ''
 
     def add_ref(self, idx):
         self._tally[idx] += 1
@@ -144,7 +143,7 @@ class BiffRecord(object):
     #     self._rec_data = ''
 
     def get_rec_id(self):
-        return _REC_ID
+        return self._REC_ID
 
     def get_rec_header(self):
         return pack('<2H', self._REC_ID, len(self._rec_data))
@@ -1304,7 +1303,7 @@ class PanesRecord(BiffRecord):
     [9]         1           Not used (BIFF5-BIFF8 only, not written
                             in BIFF2-BIFF4)
 
-    If the panes are frozen, pane 0 is always active, regardless
+    If the panes are frozen, paneÂ 0 is always active, regardless
     of the cursor position. The correct identifiers for all possible
     combinations of visible panes are shown in the following pictures.
 
@@ -1694,10 +1693,10 @@ class RefModeRecord(BiffRecord):
     """
     This record is part of the Calculation Settings Block.
     It stores which method is used to show cell addresses in formulas.
-    The “RC” mode uses numeric indexes for rows and columns,
-    i.e. “R(1)C(-1)”, or “R1C1:R2C2”.
-    The “A1” mode uses characters for columns and numbers for rows,
-    i.e. “B1”, or “$A$1:$B$2”.
+    The Â“RCÂ” mode uses numeric indexes for rows and columns,
+    i.e. Â“R(1)C(-1)Â”, or Â“R1C1:R2C2Â”.
+    The Â“A1Â” mode uses characters for columns and numbers for rows,
+    i.e. Â“B1Â”, or Â“$A$1:$B$2Â”.
 
     Record REFMODE, BIFF2-BIFF8:
 
@@ -1745,7 +1744,7 @@ class DeltaRecord(BiffRecord):
 class SaveRecalcRecord(BiffRecord):
     """
     This record is part of the Calculation Settings Block.
-    It contains the “Recalculate before save” option in
+    It contains the Â“Recalculate before saveÂ” option in
     Excel's calculation settings dialogue.
 
     Record SAVERECALC, BIFF3-BIFF8:
@@ -1848,7 +1847,7 @@ class DefColWidthRecord(BiffRecord):
     """
     _REC_ID = 0x0055
 
-    def __init__(self, def_width):
+    def __init__(self, options, def_width):
         self._rec_data = pack('<H', options, def_width)
 
 class HorizontalPageBreaksRecord(BiffRecord):
@@ -2411,7 +2410,7 @@ class ExternnameRecord(BiffRecord):
     0       0001H   0 = Standard name; 1 = Built-in name
     1       0002H   0 = Manual link; 1 = Automatic link (DDE links and OLE links only)
     2       0004H   1 = Picture link (DDE links and OLE links only)
-    3       0008H   1 = This is the “StdDocumentName” identifier (DDE links only)
+    3       0008H   1 = This is the Â“StdDocumentNameÂ” identifier (DDE links only)
     4       0010H   1 = OLE link
     14-5    7FE0H   Clipboard format of last successful update (DDE links and OLE links only)
     15      8000H   1 = Iconified picture link (BIFF8 OLE links only)

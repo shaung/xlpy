@@ -19,18 +19,26 @@ ext_modules = []
 
 if use_cython:
     ext_modules = [
+        Extension("xlpy.xlwt.style", [ "xlpy/xlwt/style.pyx", ]),
+        Extension("xlpy.xlwt.formatting", [ "xlpy/xlwt/formatting.pyx", ]),
         Extension("xlpy.xlwt.cell", [ "xlpy/xlwt/cell.pyx", "xlpy/xlwt/cell.pxd" ]),
         Extension("xlpy.xlwt.row", [ "xlpy/xlwt/row.pyx", "xlpy/xlwt/row.pxd" ]),
+        Extension("xlpy.xlwt.column", [ "xlpy/xlwt/column.pyx" ]),
         Extension("xlpy.xlwt.worksheet", [ "xlpy/xlwt/worksheet.pyx" ]),
         Extension("xlpy.xlwt.odraw", [ "xlpy/xlwt/odraw.pyx" ]),
+        Extension("xlpy.xlwt.biff_records", [ "xlpy/xlwt/biff_records.pyx" ]),
     ]
     cmdclass.update({ 'build_ext': build_ext })
 else:
     ext_modules = [
+        Extension("xlpy.xlwt.style", [ "xlpy/xlwt/style.c", ]),
+        Extension("xlpy.xlwt.formatting", [ "xlpy/xlwt/formatting.c", ]),
         Extension("xlpy.xlwt.cell", [ "xlpy/xlwt/cell.c" ]),
         Extension("xlpy.xlwt.row", [ "xlpy/xlwt/row.c" ]),
+        Extension("xlpy.xlwt.column", [ "xlpy/xlwt/column.c" ]),
         Extension("xlpy.xlwt.worksheet", [ "xlpy/xlwt/worksheet.c" ]),
         Extension("xlpy.xlwt.odraw", [ "xlpy/xlwt/odraw.c" ]),
+        Extension("xlpy.xlwt.biff_records", [ "xlpy/xlwt/biff_records.c" ]),
     ]
 
 

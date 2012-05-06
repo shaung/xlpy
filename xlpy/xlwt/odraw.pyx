@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # cython: profile=True
 
-from BIFFRecords import BiffRecord
+from biff_records import BiffRecord
 from struct import *
 import Bitmap
 

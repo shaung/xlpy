@@ -3,7 +3,7 @@
 
 
 from struct import unpack, pack
-import BIFFRecords
+import biff_records as BIFFRecords
 import Style
 cimport cell
 import cell

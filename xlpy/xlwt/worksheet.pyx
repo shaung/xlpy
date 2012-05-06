@@ -36,14 +36,14 @@
             EOF
 '''
 
-import BIFFRecords
+import biff_records as BIFFRecords
 import Bitmap
-import Formatting
-import Style
+import formatting as Formatting
+import style as Style
 import os, tempfile
 import odraw
 
-from Column import Column
+from column import Column
 import row
 from row cimport Row
 import cell
