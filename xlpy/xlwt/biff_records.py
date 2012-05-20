@@ -1074,7 +1074,7 @@ class BoundSheetRecord(BiffRecord):
         usheetname = upack1(sheetname, encoding)
         uusheetname_len = len(usheetname)
 
-        self._rec_data = pack('<LBB%ds' % uusheetname_len, stream_pos, visibility, 0x00, usheetname)
+        self._rec_data = pack('<LBB%ds' % uusheetname_len, stream_pos, visibility & 0xFF, 0x00, usheetname)
 
 
 class ContinueRecord(BiffRecord):
