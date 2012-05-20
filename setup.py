@@ -25,7 +25,6 @@ if use_cython:
         Extension("xlpy.xlwt.row", [ "xlpy/xlwt/row.pyx", "xlpy/xlwt/row.pxd" ]),
         Extension("xlpy.xlwt.column", [ "xlpy/xlwt/column.pyx" ]),
         Extension("xlpy.xlwt.worksheet", [ "xlpy/xlwt/worksheet.pyx" ]),
-        Extension("xlpy.xlwt.odraw", [ "xlpy/xlwt/odraw.pyx" ]),
         Extension("xlpy.xlwt.utils", [ "xlpy/xlwt/utils.pyx" ]),
     ]
     cmdclass.update({ 'build_ext': build_ext })
@@ -37,7 +36,6 @@ else:
         Extension("xlpy.xlwt.row", [ "xlpy/xlwt/row.c" ]),
         Extension("xlpy.xlwt.column", [ "xlpy/xlwt/column.c" ]),
         Extension("xlpy.xlwt.worksheet", [ "xlpy/xlwt/worksheet.c" ]),
-        Extension("xlpy.xlwt.odraw", [ "xlpy/xlwt/odraw.c" ]),
         Extension("xlpy.xlwt.utils", [ "xlpy/xlwt/utils.c" ]),
     ]
 

@@ -6,7 +6,7 @@ from struct import *
 import Bitmap
 
 
-class ODrawRecordBase():
+class ODrawRecordBase(object):
     def get_full_len(self):
         length = self.get_len()
         return length > 0 and (length + 8) or 0
@@ -263,7 +263,7 @@ class OfficeArtFDGGBlock(ODrawRecordBase):
         return self.head.cidcl
 
     def get_count(self):
-        return sum([v.cspid_cur - 1 for v in self.idcl_map.values()])
+        return sum(v.cspid_cur - 1 for v in self.idcl_map.itervalues())
 
     def get_pic_count_in_sheet(self, sheet_id):
         return self.idcl_map[sheet_id].cspid_cur
