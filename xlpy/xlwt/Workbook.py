@@ -45,7 +45,7 @@ import biff_records as BIFFRecords
 import style as Style
 import odraw
 from worksheet import Worksheet
-import Utils
+import utils as Utils
 
 class Workbook(object):
 

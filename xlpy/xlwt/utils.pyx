@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# cython: profile=True
+
 # pyXLWriter: A library for generating Excel Spreadsheets
 # Copyright (c) 2004 Evgeny Filatov <fufff@users.sourceforge.net>
 # Copyright (c) 2002-2004 John McNamara (Perl Spreadsheet::WriteExcel)
@@ -165,7 +168,7 @@ def cellrange_to_rowcol_pair(cellrange):
     if res:
         row1, col1 = cell_to_rowcol2(res.group(1))
         return row1, col1, row1, col1
-    raise Exception("Unknown cell reference %s" % (cell))
+    raise Exception("Unknown cell reference %s" % (cellrange))
 
 
 def cell_to_packed_rowcol(cell):
@@ -194,3 +197,8 @@ def quote_sheet_name(unquoted_sheet_name):
         raise Exception(
             'attempt to quote an invalid worksheet name %r' % unquoted_sheet_name)
     return u"'" + unquoted_sheet_name.replace(u"'", u"''") + u"'"
+
+
+cpdef bytes pack_continue(bytes chunk):
+    return pack('<2H%ds'%len(chunk), 0x003C, len(chunk), chunk)
+ 

@@ -10,7 +10,7 @@ if version < '2.3':
     True = not False
 ### header action >>>
 import struct
-import Utils
+import utils as Utils
 from UnicodeUtils import upack1
 from ExcelMagic import *
 

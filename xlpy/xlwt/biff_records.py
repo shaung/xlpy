@@ -4,6 +4,7 @@
 from struct import pack
 from UnicodeUtils import upack1, upack2
 import sys
+from utils import pack_continue
 
 class SharedStringTable(object):
     _SST_ID = 0x00FC
@@ -157,8 +158,8 @@ class BiffRecord(object):
         data = self._rec_data
 
         if len(data) > 0x2020: # limit for BIFF7/8
-            chunks = []
             pos = 0
+            chunks = []
             while pos < len(data):
                 chunk_pos = pos + 0x2020
                 chunk = data[pos:chunk_pos]
@@ -166,8 +167,7 @@ class BiffRecord(object):
                 pos = chunk_pos
             continues = pack('<2H', self._REC_ID, len(chunks[0])) + chunks[0]
             for chunk in chunks[1:]:
-                continues += pack('<2H%ds'%len(chunk), 0x003C, len(chunk), chunk)
-                # 0x003C -- CONTINUE record id
+                continues += pack_continue(chunk)
             return continues
         else:
             return self.get_rec_header() + data

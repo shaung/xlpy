@@ -15,7 +15,7 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from xlpy.xlutils.display import quoted_sheet_name,cell_display
 from xlpy.xlutils.margins import cells_all_junk
-from xlpy.xlwt.Style import default_style
+from xlpy.xlwt.style import default_style
 logger = logging.getLogger('xlutils.filter')
 
 class BaseReader:
@@ -275,7 +275,7 @@ class BaseWriter:
         if not rdbook.formatting_info:
             return
         for rdxf in rdbook.xf_list:
-            wtxf = xlwt.Style.XFStyle()
+            wtxf = xlwt.style.XFStyle()
             #
             # number format
             #

@@ -5,7 +5,7 @@ from xlpy.xlwt import *
 def get_xlwt_style_list(rdbook):
     wt_style_list = []
     for rdxf in rdbook.xf_list:
-        wtxf = Style.XFStyle()
+        wtxf = style.XFStyle()
         #
         # number format
         #
